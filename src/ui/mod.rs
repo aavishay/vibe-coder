@@ -24,6 +24,7 @@ pub enum Message {
     InputLine2Changed(String),
     SendRequest,
     ResponseReceived(Result<ParsedResponse, String>),
+    Initialize,
 }
 
 impl Application for VibeCoder {
@@ -56,10 +57,7 @@ impl Application for VibeCoder {
                 provider.configure(config).await.ok();
                 provider
             },
-            |_provider| {
-                // This is a setup command, no message needed
-                Message::InputLine1Changed(String::new())
-            },
+            |_provider| Message::Initialize,
         );
 
         (app, init_command)
@@ -71,6 +69,10 @@ impl Application for VibeCoder {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
+            Message::Initialize => {
+                // Initialization complete
+                Command::none()
+            }
             Message::InputLine1Changed(value) => {
                 self.input_line1 = value;
                 Command::none()
@@ -115,8 +117,10 @@ impl Application for VibeCoder {
                         provider.send_request(request).await
                     },
                     |result| {
-                        Message::ResponseReceived(result.map(|resp| parse_response(&resp.content))
-                            .map_err(|e| e.to_string()))
+                        let processed_result = result
+                            .map(|resp| parse_response(&resp.content))
+                            .map_err(|e| e.to_string());
+                        Message::ResponseReceived(processed_result)
                     },
                 )
             }

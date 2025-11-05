@@ -102,8 +102,28 @@ impl Plugin for CodeFormatterPlugin {
             ));
         }
         
-        // Add formatting markers (this is a simple example)
-        Ok(response.replace("```", "```\n// Formatted by Code Formatter Plugin\n"))
+        // Add formatting markers to code blocks (simple example)
+        // In a real implementation, this would use proper markdown parsing
+        let mut result = String::new();
+        let mut in_code_block = false;
+        
+        for line in response.lines() {
+            if line.starts_with("```") && !in_code_block {
+                result.push_str(line);
+                result.push('\n');
+                result.push_str("// Formatted by Code Formatter Plugin\n");
+                in_code_block = true;
+            } else if line.starts_with("```") && in_code_block {
+                result.push_str(line);
+                result.push('\n');
+                in_code_block = false;
+            } else {
+                result.push_str(line);
+                result.push('\n');
+            }
+        }
+        
+        Ok(result)
     }
 }
 
