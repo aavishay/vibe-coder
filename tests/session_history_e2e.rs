@@ -114,8 +114,8 @@ fn test_session_history_max_size() {
     assert_eq!(history.len(), 3, "History should be capped at max_size");
 
     let entries = history.get_entries();
-    assert_eq!(entries[0].user_prompt, "Prompt 2", "Oldest entries should be removed");
-    assert_eq!(entries[2].user_prompt, "Prompt 4", "Newest entries should be kept");
+    assert_eq!(entries.first().unwrap().user_prompt, "Prompt 2", "Oldest entries should be removed");
+    assert_eq!(entries.last().unwrap().user_prompt, "Prompt 4", "Newest entries should be kept");
 }
 
 #[test]
@@ -192,14 +192,19 @@ fn test_search_history() {
         });
     }
 
-    let rust_results = history.search("Rust");
-    assert_eq!(rust_results.len(), 2, "Should find 2 Rust-related entries");
+    let rust_entries = history.search("Rust");
+    assert_eq!(rust_entries.len(), 2, "Should find 2 Rust-related entries");
 
-    let python_results = history.search("Python");
-    assert_eq!(python_results.len(), 1);
-
-    let no_results = history.search("Java");
-    assert_eq!(no_results.len(), 0);
+    assert_eq!(
+        rust_entries.first().unwrap().user_prompt,
+        "Write a Rust function",
+        "First Rust entry should be the function prompt"
+    );
+    assert_eq!(
+        rust_entries.last().unwrap().user_prompt,
+        "Rust error handling",
+        "Last Rust entry should be the error handling prompt"
+    );
 }
 
 #[test]

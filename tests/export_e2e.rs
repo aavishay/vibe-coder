@@ -306,7 +306,7 @@ fn test_complete_export_workflow() {
         ExportEntry {
             timestamp: "2024-01-01 10:00:00".to_string(),
             user_prompt: "Implement a sorting algorithm in Rust".to_string(),
-            ai_response: "Here's a bubble sort implementation:\n\n```rust\nfn bubble_sort(arr: &mut [i32]) { ... }\n```".to_string(),
+            ai_response: "Here's a bubble sort implementation:\n\n```rust\nfn bubble_sort(arr: &mut [i32]) {\n    let len = arr.len();\n    for i in 0..len {\n        for j in 0..len - 1 - i {\n            if arr[j] > arr[j + 1] {\n                arr.swap(j, j + 1);\n            }\n        }\n    }\n}\n```".to_string(),
             provider: "Mock Provider".to_string(),
         },
         ExportEntry {

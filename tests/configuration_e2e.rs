@@ -311,7 +311,8 @@ fn test_provider_settings_serialization() {
 
 #[test]
 fn test_config_with_environment_variable_placeholders() {
-    // This test demonstrates how config might reference environment variables
+    // Note: This test demonstrates the TOML structure for environment variable placeholders.
+    // Actual environment variable expansion would be implemented in the application layer.
     let toml_str = r#"
         [[ai_providers]]
         name = "OpenAI"
@@ -325,7 +326,8 @@ fn test_config_with_environment_variable_placeholders() {
 
     let cfg = config.unwrap();
     assert!(cfg.ai_providers[0].api_key.is_some());
-    // In a real implementation, this would be expanded to actual env var value
+    // The literal placeholder value is stored; expansion would happen at runtime
+    assert_eq!(cfg.ai_providers[0].api_key.as_ref().unwrap(), "${OPENAI_API_KEY}");
 }
 
 /// E2E test for complete configuration workflow
