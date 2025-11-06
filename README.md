@@ -1,161 +1,131 @@
 # Vibe Coder
 
-An AI coding console for macOS (and other platforms) built with Rust. Vibe Coder is a fast, extensible, and scalable application that allows users to run coding tasks locally with AI assistance.
+An AI coding console built with Go (Wails) and React. Vibe Coder provides a modern, VS Code/Zed-inspired interface for interacting with AI coding assistants locally.
 
 ## Features
 
-- 🚀 **Fast & Efficient**: Built with Rust for maximum performance
-- 🎨 **Clean UI**: Two input lines for queries with a responsive display area
-- 🤖 **Multi-Provider AI Support**: Integrate multiple AI providers (OpenAI, Anthropic, etc.)
-- 🔌 **Plugin System**: Extensible architecture for custom functionality
-- 📝 **Smart Response Parsing**: Automatically parses and formats AI responses including:
-  - Titles and headings
-  - Code blocks with syntax highlighting
-  - Lists and quotes
-  - Paragraphs and formatted text
+- 🎨 **Modern Editor UI**: VS Code/Zed-inspired layout with activity bar, sidebar, tab bar, editor pane, and status bar
+- 🖋️ **Font Customization**: Cycle through developer fonts (JetBrains Mono, Fira Code, SF Mono, Cascadia Code, Menlo) and adjust font size
+- 🤖 **Multi-Provider AI Support**: 
+  - Built-in support for Ollama (local AI)
+  - Mock provider for testing
+  - Easy to extend with additional providers (Copilot, Gemini, Claude)
+  - Provider configuration dialog with type selection
+- 🎭 **Theme Support**: Dark/light modes with VS Code and Zed color palettes
+- 📝 **Smart Response Display**: Monaco Editor for syntax-highlighted code and markdown rendering
+- ⚡ **Fast & Native**: Go backend with embedded React frontend using Wails
+
+## Tech Stack
+
+- **Backend**: Go 1.22+ with Wails v2
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS with shadcn/ui design tokens
+- **Icons**: Lucide React
+- **Editor**: Monaco Editor for code display
 
 ## Installation
 
 ### Prerequisites
 
-- Rust 1.70 or higher
-- macOS 10.15+ (or Linux/Windows for cross-platform support)
+- Go 1.22 or higher
+- Node.js 18+ and npm
+- Wails CLI: `go install github.com/wailsapp/wails/v2/cmd/wails@latest`
 
 ### Building from Source
 
 ```bash
 # Clone the repository
 git clone https://github.com/aavishay/vibe-coder.git
-cd vibe-coder
+cd vibe-coder/wails-app
 
-# Build the project
-cargo build --release
+# Install frontend dependencies
+cd frontend
+npm install
+cd ..
 
-# Run the application
-cargo run --release
+# Build and run
+wails dev    # Development mode with live reload
+wails build  # Production build
 ```
 
 ## Usage
 
-1. Launch the application
-2. Enter your coding query in the two input fields:
-   - **Input Line 1**: Main query or task description
-   - **Input Line 2**: Additional context or parameters
-3. Click "Send Request" or press Enter
-4. View the parsed AI response with syntax-highlighted code blocks
+1. **Launch the application**:
+   ```bash
+   cd wails-app
+   wails dev
+   ```
+
+2. **Customize appearance**:
+   - Click **VS Code/Zed** button to toggle editor style
+   - Click **Dark/Light** button to toggle theme
+   - Click **Font** button to cycle through fonts
+   - Click **A-** / **A+** buttons to adjust font size
+
+3. **Configure AI providers**:
+   - Click **Providers** button in status bar
+   - Click **Cycle Type** to select provider (Ollama, Copilot, Gemini, Claude, Mock)
+   - Enter configuration:
+     - Name (optional, defaults to provider type)
+     - API Key
+     - Endpoint (defaults provided)
+     - Model (defaults provided)
+   - Click **Add Provider**
+   
+4. **For Ollama** (local AI):
+   - Install Ollama: `brew install ollama` or visit https://ollama.ai
+   - Pull a model: `ollama pull llama3`
+   - In the app, add Ollama provider with:
+     - Endpoint: `http://localhost:11434` (default)
+     - Model: `llama3` (or any model you have)
+
+5. **Send prompts**:
+   - Type your coding question in the textarea
+   - Click **Send** or press Enter
+   - Responses appear in Monaco Editor with syntax highlighting
 
 ## Architecture
 
-### Core Components
+### Backend (Go)
 
-#### 1. AI Provider System (`src/ai_providers/`)
-- Trait-based architecture for multiple AI providers
-- Easy integration of new providers (OpenAI, Anthropic, local models)
-- Built-in mock provider for testing
-
-#### 2. Response Parser (`src/parser/`)
-- Markdown-based parsing using `pulldown-cmark`
-- Extracts structured content:
-  - Headings (multiple levels)
-  - Code blocks with language detection
-  - Lists and quotes
-  - Paragraphs
-
-#### 3. Plugin System (`src/plugins/`)
-- Trait-based plugin architecture
-- Support for:
-  - Pre-processors (modify input before AI)
-  - Post-processors (modify AI responses)
-  - Code formatters
-  - Custom commands
-- Sample plugins included
-
-#### 4. UI Layer (`src/ui/`)
-- Built with `iced` GUI framework
-- Responsive and native look & feel
-- Real-time response rendering
-
-## Plugin Development
-
-Create custom plugins by implementing the `Plugin` trait:
-
-```rust
-use async_trait::async_trait;
-use vibe_coder::plugins::{Plugin, PluginMetadata, PluginCapability, PluginError};
-
-pub struct MyPlugin;
-
-#[async_trait]
-impl Plugin for MyPlugin {
-    fn metadata(&self) -> PluginMetadata {
-        PluginMetadata {
-            name: "My Plugin".to_string(),
-            version: "1.0.0".to_string(),
-            description: "Does something awesome".to_string(),
-            author: "Your Name".to_string(),
-        }
-    }
-    
-    fn capabilities(&self) -> Vec<PluginCapability> {
-        vec![PluginCapability::PreProcessor]
-    }
-    
-    async fn initialize(&mut self) -> Result<(), PluginError> {
-        Ok(())
-    }
-    
-    async fn pre_process(&self, input: &str) -> Result<String, PluginError> {
-        // Your custom logic here
-        Ok(input.to_string())
-    }
-}
+```
+wails-app/
+├── main.go              # Wails app, provider management, API endpoints
+├── go.mod               # Go dependencies
+└── wails.json           # Wails configuration
 ```
 
-## Adding AI Providers
+**Key Components**:
+- `Provider` interface: Generic AI provider abstraction
+- `OllamaProvider`: HTTP client for Ollama API
+- `MockProvider`: Testing fallback
+- `App` struct: Provider manager with thread-safe operations
 
-Implement the `AIProvider` trait to add new AI services:
+**API Methods**:
+- `AddProvider(config)` - Register new provider
+- `ListProviders()` - Get all provider names  
+- `SetActiveProvider(index)` - Switch active provider
+- `SendPrompt(prompt)` - Send request to active provider
 
-```rust
-use async_trait::async_trait;
-use vibe_coder::ai_providers::{AIProvider, AIRequest, AIResponse, ProviderConfig, AIProviderError};
+### Frontend (React + TypeScript)
 
-pub struct MyAIProvider;
-
-#[async_trait]
-impl AIProvider for MyAIProvider {
-    fn name(&self) -> String {
-        "My AI Provider".to_string()
-    }
-    
-    async fn configure(&mut self, config: ProviderConfig) -> Result<(), AIProviderError> {
-        // Configure your provider
-        Ok(())
-    }
-    
-    async fn send_request(&self, request: AIRequest) -> Result<AIResponse, AIProviderError> {
-        // Implement API call
-        todo!()
-    }
-    
-    fn is_ready(&self) -> bool {
-        true
-    }
-}
+```
+wails-app/frontend/
+├── src/
+│   ├── ui/App.tsx       # Main app component
+│   ├── main.tsx         # React entry point
+│   └── index.css        # Tailwind + CSS variables
+├── package.json         # Frontend dependencies
+├── vite.config.ts       # Vite bundler config
+└── tailwind.config.js   # Tailwind + shadcn/ui tokens
 ```
 
-## Testing
-
-Run the test suite:
-
-```bash
-cargo test
-```
-
-Run with output:
-
-```bash
-cargo test -- --nocapture
-```
+**Features**:
+- Monaco Editor for response display
+- Lucide icons for UI elements
+- Tailwind CSS for styling
+- Provider dialog modal
+- Font and theme customization
 
 ## Development
 
@@ -163,39 +133,70 @@ cargo test -- --nocapture
 
 ```
 vibe-coder/
-├── src/
-│   ├── main.rs              # Application entry point
-│   ├── ui/                  # GUI components
-│   │   └── mod.rs
-│   ├── parser/              # Response parser
-│   │   └── mod.rs
-│   ├── ai_providers/        # AI provider integrations
-│   │   └── mod.rs
-│   └── plugins/             # Plugin system
-│       ├── mod.rs
-│       └── sample_plugins.rs
-├── Cargo.toml               # Dependencies and metadata
+├── wails-app/           # Main application
+│   ├── main.go          # Go backend
+│   ├── frontend/        # React frontend
+│   └── build/           # Build artifacts (gitignored)
+├── .github/             # GitHub workflows
+├── Makefile             # Build automation
 └── README.md
 ```
 
-### Key Dependencies
+### Adding New AI Providers
 
-- `iced`: Modern cross-platform GUI framework
-- `tokio`: Async runtime
-- `pulldown-cmark`: Markdown parser
-- `serde`: Serialization framework
-- `reqwest`: HTTP client for API calls
+Implement the `Provider` interface in Go:
+
+```go
+type MyProvider struct {
+    config ProviderConfig
+    client *http.Client
+}
+
+func (p *MyProvider) GetName() string {
+    return "My Provider"
+}
+
+func (p *MyProvider) SendRequest(prompt string, temperature float64, maxTokens int) (string, error) {
+    // Implement your API call
+    return "response", nil
+}
+```
+
+Then add to the provider factory in `AddProvider()`:
+
+```go
+case "MyProvider":
+    provider = NewMyProvider(config)
+```
+
+## Testing
+
+Frontend tests (in development):
+```bash
+cd wails-app/frontend
+npm test
+```
+
+Backend tests (in development):
+```bash
+cd wails-app
+go test ./...
+```
 
 ## Roadmap
 
-- [ ] OpenAI provider implementation
-- [ ] Anthropic Claude provider implementation
-- [ ] Local model support (Ollama, etc.)
-- [ ] Configuration file support
-- [ ] Plugin marketplace
-- [ ] Code execution sandbox
+- [x] Ollama provider implementation
+- [x] Font customization
+- [x] Provider management UI
+- [x] Monaco Editor integration
+- [ ] OpenAI/Copilot provider
+- [ ] Anthropic Claude provider  
+- [ ] Gemini provider
+- [ ] Configuration file persistence
 - [ ] Session history
-- [ ] Export to file functionality
+- [ ] Export conversations
+- [ ] Multiple chat tabs
+- [ ] shadcn/ui component library integration
 
 ## Contributing
 

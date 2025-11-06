@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/v2/wails.json",
+  "name": "vibe-coder-wails",
+  "author": { "name": "aavishay", "email": "" },
+  "version": "0.1.0",
+  "wailsjsdir": "frontend/src/wailsjs",
+  "assetdir": "frontend/dist",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:server": "npm run dev",
+  "devserverurl": "http://localhost:5173",
+  "platform": "darwin"
+}
